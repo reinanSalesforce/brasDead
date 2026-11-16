@@ -34,6 +34,7 @@ export default function Draft() {
   const [intro, setIntro] = useState(true);
   const [hovered, setHovered] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [shake, setShake] = useState(false);
   const [phase, setPhase] = useState<{ label: string; id: number } | null>(null);
   const rng = useRef(mulberry32(hashSeed(`draft-${state.round}`)));
   const finished = useRef(false);
@@ -76,6 +77,14 @@ export default function Draft() {
     },
     [seq, draft.step, me.name, opp?.name],
   );
+
+  // tremor ao banir — por classe temporária (um `key` remontaria a tela inteira e apagaria as animações de entrada)
+  useEffect(() => {
+    if (stamp?.kind !== 'ban') return;
+    setShake(true);
+    const t = setTimeout(() => setShake(false), 550);
+    return () => clearTimeout(t);
+  }, [stamp]);
 
   // abertura (VS) e faixas de fase
   useEffect(() => {
@@ -214,7 +223,7 @@ export default function Draft() {
       <PhaseBanner label={phase?.label ?? null} id={phase?.id ?? 0} />
       {stamp && <div key={stamp.id} className={`draft-flash ${stamp.kind === 'ban' ? 'flash-ban' : 'flash-pick'}`} />}
 
-      <div key={stamp?.kind === 'ban' ? stamp.id : 'idle'} className={`relative ${stamp?.kind === 'ban' ? 'draft-shake' : ''}`}>
+      <div className={`relative ${shake ? 'draft-shake' : ''}`}>
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 px-6 py-4">
           <div className="min-w-[180px]">
             <div className="text-[10px] uppercase tracking-[0.4em] text-white/45">Rodada {state.round} · Jogo 1</div>
